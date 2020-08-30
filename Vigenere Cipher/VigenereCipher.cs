@@ -1,5 +1,6 @@
 ﻿using System;
-
+using System.Collections.Generic;
+using System.Text;
 namespace Programming_Assignment_1___Vigenere_Cipher
 {
     class VigenereCipher
@@ -22,52 +23,52 @@ namespace Programming_Assignment_1___Vigenere_Cipher
         string Encryption(string original, string key)
         {
             //Creates a new empty string
-            string newString = "";
+            StringBuilder newString = new StringBuilder();
             //Where the key initiates
             int keyIncrementor = 0;
             for(int i = 0; i < original.Length; i++){
                 if(original[i] == ' '){
-                    newString += ' ';
+                    newString.Append(' ');
                     continue;
                 }
                 //Find how much the char needs to be incremented by
                 int replacementIncrement = CharToInt(key[keyIncrementor]) - 1;
                 //Increment the new character and add it to the string
                 char newChar = IntToChar((CharToInt(original[i]) + replacementIncrement) % 26);
-                newString += newChar;
+                newString.Append(newChar);
                 //If the key will overrun next time, reset back to 0
                 if(++keyIncrementor == key.Length)
                     keyIncrementor = 0;
             }
-            return newString;
+            return newString.ToString();
         }
 
         //Decrypts a string given the encrypted string and the key
         string Decryption(string original, string key)
         {
             //Creates a new empty string
-            string newString = "";
+            StringBuilder newString = new StringBuilder();
             //Where the key initiates
             int keyIncrementor = 0;
             for(int i = 0; i < original.Length; i++){
                 if(original[i] == ' '){
-                    newString += ' ';
+                    newString.Append(' ');
                     continue;
                 }
                 //Find how much the char needs to be decremented by
                 int replacementDecrement = CharToInt(key[keyIncrementor]) - 1;
                 //Decrement the new character and add it to the string
                 char newChar = IntToChar((CharToInt(original[i]) - replacementDecrement + 52) % 26);
-                newString += newChar;
+                newString.Append(newChar);
                 if(++keyIncrementor == key.Length)
                     keyIncrementor = 0;
             }
-            return newString;
+            return newString.ToString();
         }
         //Asks the user if they wish to encrypt or decrypt, and then does so
         void Prompt()
         {
-            Console.Write("Type 'E' to encrypt, 'D' to decrypt. Press B to try to break a cypher, provided you know the key period is 3.");
+            Console.Write("Type 'E' to encrypt, 'D' to decrypt. Press B to try to break a cypher, provided you know the key period.");
             char input = char.ToUpper(Console.ReadKey().KeyChar);
             Console.WriteLine();
             switch(input){
@@ -109,7 +110,9 @@ namespace Programming_Assignment_1___Vigenere_Cipher
         void AskForBreak(){
             Console.WriteLine("Copy and paste (or type, if you wish) the encrypted message.");
             string message = Console.ReadLine();
-            message = BreakCipher(message);
+            Console.WriteLine("How long is the key, AKA its period?");
+            int period = int.Parse(Console.ReadLine());
+            message = BreakCipher(message, period);
             Console.WriteLine("To the best of my ability, the decrypted message is ");
             Console.WriteLine(message);
             Console.ReadKey();
@@ -202,24 +205,24 @@ namespace Programming_Assignment_1___Vigenere_Cipher
         }
         //Makes a substring of every 3 chars based on the
         //starting point
-        string StringToCipher(string message, int startingPoint)
+        string StringToCipher(string message, int startingPoint, int keySize)
         {
-            string toCipher = "";
-            for(int i = startingPoint; i < message.Length; i += 3){
-                toCipher += message[i];
+            StringBuilder toCipher = new StringBuilder();
+            for(int i = startingPoint; i < message.Length; i += keySize){
+                toCipher.Append(message[i]);
             }
-            return toCipher;
+            return toCipher.ToString();
         }
         //Shifts the message by 'shift' number of spaces
         string ShiftMessage(string message, int shift){
-            string newString = "";
+            StringBuilder newString = new StringBuilder();
             for(int i = 0; i < message.Length; i++){
                 int index = CharToInt(message[i]);
                 index += shift;
                 index %= 26;
-                newString += IntToChar(index);
+                newString.Append(IntToChar(index));
             }
-            return newString;
+            return newString.ToString();
         }
         //Finds the lowest chi value for a string
         string LowestChiValue(string message){
@@ -237,27 +240,26 @@ namespace Programming_Assignment_1___Vigenere_Cipher
         }
         //Puts together the strings in the parameters and returns
         //them as one string
-        string StitchTogetherString(string s1, string s2, string s3){
-            string finalString = "";
-            for(int i = 0; i < s1.Length; i++){
-                finalString += s1[i];
-                if(s2.Length > i)
-                    finalString += s2[i];
-                if(s3.Length > i)
-                    finalString += s3[i];
+        string StitchTogetherString(List<string> strings){ //this needs to be fixed
+            StringBuilder finalString = new StringBuilder();
+            for(int i = 0; i < strings[0].Length; i++){
+                finalString.Append(strings[0][i]);
+                for(int j = 1; j < strings.Count; j++)
+                    if(strings[j].Length > i)
+                        finalString.Append(strings[j][i]);
             }
-            return finalString;
+            return finalString.ToString();
         }
         //Splits the message up into 3 parts, finds the lowest
         //chi value of each one, and stitches them back together
-        string BreakCipher(string message){
-            string message1 = StringToCipher(message, 0);
-            message1 = LowestChiValue(message1);
-            string message2 = StringToCipher(message, 1);
-            message2 = LowestChiValue(message2);
-            string message3 = StringToCipher(message, 2);
-            message3 = LowestChiValue(message3);
-            string finalMessage = StitchTogetherString(message1, message2, message3);
+        string BreakCipher(string message, int keyLength){
+            List<string> strings = new List<string>();
+            for(int i = 0; i < keyLength; i++){
+                string thisMessage = StringToCipher(message, i, keyLength);
+                thisMessage = LowestChiValue(thisMessage);
+                strings.Add(thisMessage);
+            }
+            string finalMessage = StitchTogetherString(strings);
             return finalMessage;
         }
 
