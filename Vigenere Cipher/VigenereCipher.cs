@@ -240,7 +240,7 @@ namespace Programming_Assignment_1___Vigenere_Cipher
         }
         //Puts together the strings in the parameters and returns
         //them as one string
-        string StitchTogetherString(List<string> strings){ //this needs to be fixed
+        string StitchTogetherString(List<string> strings){ 
             StringBuilder finalString = new StringBuilder();
             for(int i = 0; i < strings[0].Length; i++){
                 finalString.Append(strings[0][i]);
